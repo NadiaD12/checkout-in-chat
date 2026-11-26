@@ -30,7 +30,8 @@ export default function App() {
 
   // ?embed hides the notes and footer when the prototype sits inside a portfolio page.
   useEffect(() => {
-    if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");
+    if (params.has("embed")) document.documentElement.classList.add("embed");
+    if (params.has("shot")) document.documentElement.classList.add("shot");
     window.__brand = (id) => {
       const preset = PRESETS.find((p) => p.id === id);
       if (preset) setTheme({ ...preset });
