@@ -58,7 +58,7 @@ export const STORES: Record<StoreId, StoreData> = {
       { name: "Align Mat", price: 128, why: "Printed alignment guides, extra long", thumb: "img/align-t.jpg" },
       { name: "Marble Flow Mat", price: 96, why: "Lighter, grips more as you sweat", thumb: "img/sage-t.jpg" },
     ],
-    pickTag: "Most reviewed for hot yoga",
+    pickTag: "Top pick for hot yoga",
     variant: { want: "Sage", got: "Plum", restock: "Dec 9" },
     cartLine: "Grip Pro Mat · Plum",
     pdp: {

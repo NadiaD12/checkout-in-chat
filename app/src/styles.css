@@ -122,3 +122,4 @@ html.embed .notes,html.embed .foot{display:none}
 html.shot .band{padding:0}html.shot .wrap{max-width:none}
 html.shot .top,html.shot .bar,html.shot .notes,html.shot .foot,html.shot .store{display:none}
 html.shot .win{border-radius:0;box-shadow:none}html.shot .app{grid-template-columns:1fr;height:var(--sh,100vh)}html.shot .chat{height:var(--sh,100vh)}
+html.shot .log>.m:first-child{display:none}html.shot .log>.m:nth-child(2){margin-top:auto}
