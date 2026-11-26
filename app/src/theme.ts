@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { FontKey, Theme, ThemeFile, Tone } from "./types";
+import type { FontKey, StoreId, Theme, ThemeFile, Tone } from "./types";
 import juniper from "../../themes/juniper.json";
 import sageAndStone from "../../themes/sage-and-stone.json";
 import studioNoir from "../../themes/studio-noir.json";
@@ -22,7 +22,7 @@ export const TONES: { value: Tone; label: string }[] = [
   { value: "brief", label: "Brief" },
 ];
 
-function fromFile(id: string, file: ThemeFile, url: string): Theme {
+function fromFile(id: string, file: ThemeFile, url: string, store: StoreId): Theme {
   return {
     id,
     name: file.brand.name,
@@ -32,14 +32,15 @@ function fromFile(id: string, file: ThemeFile, url: string): Theme {
     corner: file.shape.radius,
     tone: file.voice,
     url,
+    store,
   };
 }
 
-/** Presets are loaded straight from the JSON files in /themes. */
+/** Presets are loaded straight from the JSON files in /themes. Each brand sells something different. */
 export const PRESETS: Theme[] = [
-  fromFile("juniper", juniper as ThemeFile, "juniper.example"),
-  fromFile("sage", sageAndStone as ThemeFile, "sageandstone.example"),
-  fromFile("noir", studioNoir as ThemeFile, "studionoir.example"),
+  fromFile("juniper", juniper as ThemeFile, "juniper.example", "yoga"),
+  fromFile("sage", sageAndStone as ThemeFile, "sageandstone.example", "plants"),
+  fromFile("noir", studioNoir as ThemeFile, "studionoir.example", "coats"),
 ];
 
 /** Black or white text, whichever reads better on the brand colour. */

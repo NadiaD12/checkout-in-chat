@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Theme } from "../types";
 import { voice } from "../theme";
-import { cartTotals } from "../data";
+import { STORES, cartTotals, lower } from "../data";
 
 /** What a message shows. Cards are rendered from live state (theme, quantity, payment). */
 export type Body =
@@ -25,27 +25,22 @@ export type PayState = "idle" | "processing" | "paid";
 /** Thrown into a scripted flow when the conversation is reset mid-way. */
 class Cancelled extends Error {}
 
-const FIRST_CHIPS = ["I need a non-slip mat for hot yoga", "Do you ship to Canada?"];
 const PAY_STEP = 4;
 
 /** Off-script chips: a quick answer, then the chips that steer back to the flow. */
-const SIDE: Record<string, { reply: (t: Theme) => string; then: string[] }> = {
-  "Notify me for sage": {
-    reply: (t) => voice(t, "Done, you’ll get one message when sage is back. Want plum in the meantime?", "Done. Plum in the meantime?"),
-    then: ["Plum is perfect"],
-  },
-  "What’s the difference?": {
-    reply: () =>
-      "Grip Pro grips straight away and cushions most. Align has printed guides and is extra long. Marble Flow is lighter and grips better the more you sweat.",
-    then: ["Add the Grip Pro in sage"],
-  },
-  "Do you ship to Canada?": {
-    reply: () => "Yes, free shipping anywhere in Canada on orders over $75, usually 2 to 4 business days.",
-    then: ["I need a non-slip mat for hot yoga"],
-  },
-  "Keep shopping": { reply: (t) => voice(t, "Anytime. I’m here if you need anything.", "Sure."), then: [] },
-  "Thanks!": { reply: (t) => voice(t, "Enjoy your practice!", "You’re welcome."), then: [] },
-};
+function sideChips(t: Theme): Record<string, { reply: string; then: string[] }> {
+  const { chips, copy, variant } = STORES[t.store];
+  return {
+    [chips.notify]: {
+      reply: voice(t, `Done, you’ll get one message when it’s back. Want ${lower(variant.got)} in the meantime?`, `Done. ${variant.got} in the meantime?`),
+      then: [chips.accept],
+    },
+    [chips.compare]: { reply: copy.compare, then: [chips.add] },
+    [chips.ship]: { reply: copy.ship, then: [chips.ask] },
+    "Keep shopping": { reply: voice(t, "Anytime. I’m here if you need anything.", "Sure."), then: [] },
+    "Thanks!": { reply: voice(t, ...copy.thanks), then: [] },
+  };
+}
 
 export function useConversation(theme: Theme) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -63,6 +58,8 @@ export function useConversation(theme: Theme) {
   const busy = useRef(false);
   const auto = useRef(false);
   const timers = useRef(new Set<number>());
+  /** 0 skips every delay: used to jump straight to a step for screenshots. */
+  const speed = useRef(1);
 
   const nextId = () => ++ids.current;
 
@@ -74,7 +71,7 @@ export function useConversation(theme: Theme) {
           timers.current.delete(t);
           if (s === session.current) resolve();
           else reject(new Cancelled());
-        }, ms);
+        }, ms * speed.current);
         timers.current.add(t);
       }),
     [],
@@ -92,34 +89,37 @@ export function useConversation(theme: Theme) {
   };
   const sayText = (content: ReactNode, delay?: number) => say({ kind: "text", content }, false, delay);
 
-  /** The scripted happy path. `user` is what the shopper sends to start each step. */
-  const steps: { user: string | null; run: () => Promise<void> }[] = [
+  const store = () => STORES[themeRef.current.store];
+
+  /** The scripted happy path, the same for every store. `user` is what the shopper sends to start each step. */
+  const steps: { user: () => string | null; run: () => Promise<void> }[] = [
     {
-      user: "I need a non-slip mat for hot yoga",
+      user: () => store().chips.ask,
       run: async () => {
-        const t = themeRef.current;
-        await sayText(voice(t, "Good call, regular mats get slippery in heat. These are the three shoppers like you pick most:", "Top picks for hot yoga:"));
+        const { copy, chips } = store();
+        await sayText(voice(themeRef.current, ...copy.intro));
         await say({ kind: "picks" }, true, 500);
-        setChips(["Add the Grip Pro in sage", "What’s the difference?"]);
+        setChips([chips.add, chips.compare]);
       },
     },
     {
-      user: "Add the Grip Pro in sage",
+      user: () => store().chips.add,
       run: async () => {
         const t = themeRef.current;
-        const tag = <span className="tag warn">Restocks Dec 9</span>;
+        const { variant, chips } = store();
+        const tag = <span className="tag warn">Restocks {variant.restock}</span>;
         await sayText(
           t.tone === "brief" ? (
-            <>Sage: sold out. {tag}<br />Plum ships today.</>
+            <>{variant.want}: sold out. {tag}<br />{variant.got} ships today.</>
           ) : (
-            <>Sage is sold out right now. {tag}<br />Plum ships today, or I can let you know when sage is back.</>
+            <>{variant.want} is sold out right now. {tag}<br />{variant.got} ships today, or I can let you know when {lower(variant.want)} is back.</>
           ),
         );
-        setChips(["Plum is perfect", "Notify me for sage"]);
+        setChips([chips.accept, chips.notify]);
       },
     },
     {
-      user: "Plum is perfect",
+      user: () => store().chips.accept,
       run: async () => {
         await sayText(voice(themeRef.current, "Added. Here’s your cart. You can change the quantity right here.", "Added. Your cart:"));
         await say({ kind: "cart" }, true, 400);
@@ -127,7 +127,7 @@ export function useConversation(theme: Theme) {
       },
     },
     {
-      user: "Check out",
+      user: () => "Check out",
       run: async () => {
         await sayText(voice(themeRef.current, "Almost done. Please check these before I place the order:", "Confirm to place your order:"));
         await say({ kind: "confirm" }, true, 500);
@@ -135,16 +135,17 @@ export function useConversation(theme: Theme) {
       },
     },
     {
-      user: null, // started by tapping "Confirm and pay"
+      user: () => null, // started by tapping "Confirm and pay"
       run: async () => {
         setPay("processing");
         await wait(900);
         setPay("paid");
         const t = themeRef.current;
+        const { picks, copy } = store();
         const prefix = t.name.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase() || "OR";
         const q = qtyRef.current;
-        await say({ kind: "done", order: `${prefix}-20481`, qty: q, total: cartTotals(q).total }, true, 500);
-        await sayText(voice(t, "Tip: wipe natural rubber with a damp cloth, no soap, and it stays grippy for years.", "Care tip: damp cloth, no soap."));
+        await say({ kind: "done", order: `${prefix}-20481`, qty: q, total: cartTotals(picks[0].price, q).total }, true, 500);
+        await sayText(voice(t, ...copy.tip));
         setChips(["Thanks!"]);
       },
     },
@@ -170,8 +171,9 @@ export function useConversation(theme: Theme) {
     busy.current = true;
     const s = session.current;
     try {
-      if (current.user) {
-        addUser(text ?? current.user);
+      const said = current.user();
+      if (said) {
+        addUser(text ?? said);
         setChips([]);
       }
       await current.run();
@@ -190,12 +192,14 @@ export function useConversation(theme: Theme) {
     timers.current.clear();
     auto.current = false;
     busy.current = false;
+    speed.current = 1;
     step.current = 0;
     qtyRef.current = 1;
     setQtyState(1);
     setPay("idle");
     setMessages([{ id: nextId(), from: "a", card: false, body: { kind: "greet" } }]);
-    setChips(FIRST_CHIPS);
+    const { chips } = STORES[themeRef.current.store];
+    setChips([chips.ask, chips.ship]);
   };
 
   const play = () => {
@@ -204,12 +208,24 @@ export function useConversation(theme: Theme) {
     schedule();
   };
 
+  /** Run the first `count` steps with no delays, e.g. to land on the cart for a screenshot. */
+  const jumpTo = async (count: number) => {
+    reset();
+    speed.current = 0;
+    const s = session.current;
+    try {
+      while (step.current < Math.min(count, PAY_STEP) && s === session.current) await next();
+    } finally {
+      if (s === session.current) speed.current = 1;
+    }
+  };
+
   const tapChip = (label: string) => {
-    const side = SIDE[label];
+    const side = sideChips(themeRef.current)[label];
     if (!side) return void next(label);
     addUser(label);
     setChips([]);
-    sayText(side.reply(themeRef.current))
+    sayText(side.reply)
       .then(() => setChips(side.then))
       .catch((e) => {
         if (!(e instanceof Cancelled)) throw e;
@@ -251,7 +267,7 @@ export function useConversation(theme: Theme) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { messages, chips, qty, pay, reset, play, tapChip, send, askHuman, setQty, confirmPay };
+  return { messages, chips, qty, pay, reset, play, jumpTo, tapChip, send, askHuman, setQty, confirmPay };
 }
 
 export type Conversation = ReturnType<typeof useConversation>;

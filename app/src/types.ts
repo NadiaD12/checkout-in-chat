@@ -2,6 +2,8 @@ export type FontKey = "inter" | "fraunces" | "grotesk";
 export type Tone = "warm" | "brief";
 export type Corner = 2 | 14 | 22;
 export type View = "shop" | "kit" | "mer";
+/** Which fictional catalogue a brand sells. */
+export type StoreId = "yoga" | "plants" | "coats";
 
 /** The shape of every file in /themes. A new brand is one of these. */
 export interface ThemeFile {
@@ -22,6 +24,7 @@ export interface Theme {
   corner: number;
   tone: Tone;
   url: string;
+  store: StoreId;
 }
 
 export interface Product {

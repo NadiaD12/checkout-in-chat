@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Theme } from "../types";
 import { voice } from "../theme";
-import { PRODUCTS, cartTotals, money, type ProductKey } from "../data";
+import { STORES, cartTotals, money, type StoreData } from "../data";
 import type { Body, Conversation, PayState } from "./useConversation";
 
 interface Props {
@@ -28,6 +28,7 @@ export function Chat({ theme, convo }: Props) {
   }
 
   const initial = (theme.name.trim()[0] || "S").toUpperCase();
+  const store = STORES[theme.store];
 
   return (
     <section className="chat" aria-label="Shopping assistant">
@@ -46,7 +47,7 @@ export function Chat({ theme, convo }: Props) {
         {messages.map((m) => (
           // Re-key when the typing dots turn into the reply so the entrance animation plays again.
           <div key={`${m.id}-${m.body.kind === "typing" ? "t" : "r"}`} className={`m ${m.from}${m.card ? " card" : ""}`}>
-            <MessageBody body={m.body} theme={theme} qty={qty} pay={pay} convo={convo} />
+            <MessageBody body={m.body} theme={theme} store={store} qty={qty} pay={pay} convo={convo} />
           </div>
         ))}
       </div>
@@ -63,7 +64,7 @@ export function Chat({ theme, convo }: Props) {
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Ask about sizes, materials, delivery…"
+          placeholder={store.placeholder}
           autoComplete="off"
           aria-label="Message"
         />
@@ -76,12 +77,14 @@ export function Chat({ theme, convo }: Props) {
 interface BodyProps {
   body: Body;
   theme: Theme;
+  store: StoreData;
   qty: number;
   pay: PayState;
   convo: Conversation;
 }
 
-function MessageBody({ body, theme, qty, pay, convo }: BodyProps) {
+function MessageBody({ body, theme, store, qty, pay, convo }: BodyProps) {
+  const item = store.picks[0];
   switch (body.kind) {
     case "typing":
       return (
@@ -106,25 +109,25 @@ function MessageBody({ body, theme, qty, pay, convo }: BodyProps) {
     case "picks":
       return (
         <>
-          {(["grip", "align", "flow"] as ProductKey[]).map((k) => (
-            <div className="prod" key={k}>
+          {store.picks.map((p, i) => (
+            <div className="prod" key={p.name}>
               <div className="thumb">
-                <img src={PRODUCTS[k].thumb} alt={PRODUCTS[k].name} />
+                <img src={p.thumb} alt={p.name} />
               </div>
               <div>
-                <b>{PRODUCTS[k].name}</b>
-                <small>{PRODUCTS[k].why}</small>
-                {k === "grip" && <span className="tag">Most reviewed for hot yoga</span>}
+                <b>{p.name}</b>
+                <small>{p.why}</small>
+                {i === 0 && <span className="tag">{store.pickTag}</span>}
               </div>
-              <div className="p">{money(PRODUCTS[k].price)}</div>
+              <div className="p">{money(p.price)}</div>
             </div>
           ))}
         </>
       );
     case "cart":
-      return <Cart qty={qty} onQty={convo.setQty} />;
+      return <Cart store={store} qty={qty} onQty={convo.setQty} />;
     case "confirm": {
-      const label = pay === "processing" ? "Processing…" : pay === "paid" ? "Paid" : `Confirm and pay ${money(cartTotals(qty).total)}`;
+      const label = pay === "processing" ? "Processing…" : pay === "paid" ? "Paid" : `Confirm and pay ${money(cartTotals(item.price, qty).total)}`;
       return (
         <>
           <div className="info" style={{ borderTop: 0 }}>
@@ -141,7 +144,7 @@ function MessageBody({ body, theme, qty, pay, convo }: BodyProps) {
           </div>
           <div className="info">
             <div>
-              <small>Arrives</small>Mon, Dec 1 · Free shipping
+              <small>Arrives</small>Tue, Dec 1 · Free shipping
             </div>
           </div>
           <button className="pay" type="button" disabled={pay !== "idle"} onClick={convo.confirmPay}>
@@ -158,9 +161,9 @@ function MessageBody({ body, theme, qty, pay, convo }: BodyProps) {
             <div className="check">✓</div>
             <b>Order {body.order} placed</b>
             <small style={{ color: "var(--sub)" }}>
-              {body.qty} × Grip Pro Mat · Plum · {money(body.total)}
+              {body.qty} × {store.cartLine} · {money(body.total)}
               <br />
-              Arrives Mon, Dec 1. Receipt sent to alex@example.com
+              Arrives Tue, Dec 1. Receipt sent to alex@example.com
             </small>
           </div>
           <div className="info">
@@ -172,16 +175,17 @@ function MessageBody({ body, theme, qty, pay, convo }: BodyProps) {
   }
 }
 
-function Cart({ qty, onQty }: { qty: number; onQty: (delta: number) => void }) {
-  const t = cartTotals(qty);
+function Cart({ store, qty, onQty }: { store: StoreData; qty: number; onQty: (delta: number) => void }) {
+  const item = store.picks[0];
+  const t = cartTotals(item.price, qty);
   return (
     <>
       <div className="prod">
         <div className="thumb">
-          <img src={PRODUCTS.grip.thumb} alt="Grip Pro Mat" />
+          <img src={item.thumb} alt={item.name} />
         </div>
         <div>
-          <b>Grip Pro Mat · Plum</b>
+          <b>{store.cartLine}</b>
           <small>Ships today</small>
           <div className="qty" style={{ marginTop: 6 }}>
             <button type="button" aria-label="Fewer" onClick={() => onQty(-1)}>
@@ -193,7 +197,7 @@ function Cart({ qty, onQty }: { qty: number; onQty: (delta: number) => void }) {
             </button>
           </div>
         </div>
-        <div className="p">{money(PRODUCTS.grip.price * qty)}</div>
+        <div className="p">{money(item.price * qty)}</div>
       </div>
       <div className="sum">
         <div className="row"><span>Subtotal</span><span>{money(t.sub)}</span></div>

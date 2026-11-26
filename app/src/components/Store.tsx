@@ -1,6 +1,10 @@
 import type { Theme } from "../types";
+import { STORES, money } from "../data";
 
 export function Store({ theme }: { theme: Theme }) {
+  const store = STORES[theme.store];
+  const item = store.picks[0];
+  const { pdp } = store;
   return (
     <section className="store" aria-label="Store page">
       <div className="nav">
@@ -9,40 +13,39 @@ export function Store({ theme }: { theme: Theme }) {
           <span>.</span>
         </div>
         <div className="navl">
-          <span>Mats</span>
-          <span>Props</span>
-          <span>Apparel</span>
+          {store.nav.map((n) => (
+            <span key={n}>{n}</span>
+          ))}
           <span>Cart (0)</span>
         </div>
       </div>
       <div className="pdp">
         <div>
           <div className="hero">
-            <img src="img/plum.jpg" alt="Grip Pro Mat in plum, partly rolled" />
+            <img src={pdp.hero} alt={pdp.heroAlt} />
           </div>
           <div className="gal">
-            <img src="img/plum.jpg" alt="" />
-            <img src="img/align.jpg" alt="Align Mat in use outdoors" />
-            <img src="img/sage.jpg" alt="Marble Flow Mat in use" />
+            {pdp.gallery.map(([src, alt]) => (
+              <img key={src} src={src} alt={alt} />
+            ))}
           </div>
         </div>
         <div>
-          <small style={{ color: "var(--sub)" }}>Mats · Best seller</small>
-          <h2>Grip Pro Mat</h2>
-          <p className="price">$118.00</p>
+          <small style={{ color: "var(--sub)" }}>{pdp.kicker}</small>
+          <h2>{item.name}</h2>
+          <p className="price">{money(item.price)}</p>
           <div style={{ fontSize: 14 }}>
-            Colour: <b>Plum</b>
+            {pdp.option[0]}: <b>{pdp.option[1]}</b>
           </div>
           <div className="sw">
-            <i className="on" style={{ background: "#7a4060" }} title="Plum" />
-            <i className="out" style={{ background: "#8fa88a" }} title="Sage, sold out" />
-            <i style={{ background: "#2e2a33" }} title="Black" />
+            {pdp.swatches.map((s) => (
+              <i key={s.title} className={s.on ? "on" : s.out ? "out" : undefined} style={{ background: s.color }} title={s.title} />
+            ))}
           </div>
           <ul className="feat">
-            <li>Natural rubber base, 5 mm cushioning</li>
-            <li>Stays grippy in heat and sweat</li>
-            <li>Alignment line down the centre</li>
-            <li>183 × 66 cm, 2.4 kg</li>
+            {pdp.features.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
           </ul>
           <button className="add" type="button">
             Add to cart

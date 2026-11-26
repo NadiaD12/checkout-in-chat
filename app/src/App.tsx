@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Theme, View } from "./types";
 import { PRESETS, themeVars } from "./theme";
-import { NOTES } from "./data";
+import { NOTES, STORES } from "./data";
 import { Store } from "./components/Store";
 import { BrandKit } from "./components/BrandKit";
 import { Merchant } from "./components/Merchant";
@@ -22,7 +22,9 @@ const VIEWS: { id: View; label: string }[] = [
 ];
 
 export default function App() {
-  const [theme, setTheme] = useState<Theme>(PRESETS[0]);
+  // ?brand=sage starts on another preset; ?to=cart jumps straight to that step (used for screenshots).
+  const params = new URLSearchParams(location.search);
+  const [theme, setTheme] = useState<Theme>(() => ({ ...(PRESETS.find((p) => p.id === params.get("brand")) ?? PRESETS[0]) }));
   const [view, setView] = useState<View>("shop");
   const convo = useConversation(theme);
 
@@ -35,8 +37,21 @@ export default function App() {
     };
     if (location.hash === "#brand-kit") setView("kit");
     if (location.hash === "#play") window.setTimeout(() => play(), 600);
+    const to = { picks: 1, soldout: 2, cart: 3, confirm: 4 }[params.get("to") ?? ""];
+    if (to) window.setTimeout(() => void convo.jumpTo(to), 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A different store sells different things, so its conversation starts over.
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    convo.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme.store]);
 
   function play() {
     setView("shop");
@@ -58,7 +73,7 @@ export default function App() {
             <h1>Checkout in chat</h1>
             <p className="lede">
               A white-label assistant that lets shoppers find, ask and buy in a brand's own chat, dressed in that brand's
-              colours, type and voice. Inspired by my agentic-commerce work at Agentix. Stores and data are fictional.
+              colours, type and voice. Switch brands in the Brand kit to see three different stores: yoga mats, houseplants and winter coats. Inspired by my agentic-commerce work at Agentix. Stores and data are fictional.
             </p>
           </div>
           <div className="ctrl">
@@ -83,13 +98,13 @@ export default function App() {
             <i className="dot" />
             <i className="dot" />
             <i className="dot" />
-            <div className="url">{theme.url}/products/grip-pro-mat</div>
+            <div className="url">{theme.url}/{STORES[theme.store].slug}</div>
           </div>
           <div className={appClass} style={themeVars(theme)}>
             <Store theme={theme} />
             <BrandKit theme={theme} onChange={setTheme} />
             <Chat theme={theme} convo={convo} />
-            <Merchant />
+            <Merchant theme={theme} />
           </div>
         </div>
 
