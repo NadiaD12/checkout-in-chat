@@ -49,8 +49,8 @@ Each brand is a small JSON file (see `themes/`):
 
 ## Built with
 
-Plain HTML, CSS and JavaScript in a single file, no build step. Prototyped with AI-assisted coding. Store, products, people and numbers are fictional sample data.
+Plain HTML, CSS and JavaScript in a single file, no build step. Designed and coded by me with Claude Code. Store, products, people and numbers are fictional sample data.
 
 ---
 
-Designed by **Nadia Dadollahi** · [nadiadadollahi.framer.website](https://nadiadadollahi.framer.website)
+Designed and coded by **Nadia Dadollahi** · [nadiadadollahi.framer.website](https://nadiadadollahi.framer.website)
