@@ -1,0 +1,17 @@
+{
+  "brand": {
+    "name": "Sage & Stone",
+    "assistantName": "Sage"
+  },
+  "color": {
+    "primary": "#4f6f52",
+    "onPrimary": "#ffffff"
+  },
+  "type": {
+    "family": "fraunces"
+  },
+  "shape": {
+    "radius": 22
+  },
+  "voice": "warm"
+}

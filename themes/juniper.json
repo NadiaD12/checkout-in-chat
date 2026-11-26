@@ -1,0 +1,17 @@
+{
+  "brand": {
+    "name": "Juniper",
+    "assistantName": "Juni"
+  },
+  "color": {
+    "primary": "#6b3a55",
+    "onPrimary": "#ffffff"
+  },
+  "type": {
+    "family": "inter"
+  },
+  "shape": {
+    "radius": 14
+  },
+  "voice": "warm"
+}

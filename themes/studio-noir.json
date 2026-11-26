@@ -1,0 +1,17 @@
+{
+  "brand": {
+    "name": "STUDIO NOIR",
+    "assistantName": "Noir concierge"
+  },
+  "color": {
+    "primary": "#141414",
+    "onPrimary": "#ffffff"
+  },
+  "type": {
+    "family": "grotesk"
+  },
+  "shape": {
+    "radius": 2
+  },
+  "voice": "brief"
+}
