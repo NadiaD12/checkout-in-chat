@@ -126,9 +126,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .foot{margin-top:26px;color:var(--muted);font-size:13px}
 @media(max-width:900px){.app{grid-template-columns:minmax(0,1fr) minmax(0,360px)}.pdp{grid-template-columns:1fr}.hero{aspect-ratio:16/10}.fields,.pre{grid-template-columns:1fr}}
 @media(max-width:720px){.app{grid-template-columns:1fr;height:auto}.chat{height:620px}.store{display:none}.app.v-kit .chat{border-top:1px solid var(--line)}.navl{display:none}.mg{grid-template-columns:1fr}.hb{grid-template-columns:minmax(0,9em) minmax(0,1fr) 3em}}
+html.embed .notes,html.embed .foot{display:none}
 </style>
 </head>
 <body>
+<script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed')</script>
+
 <main class="band"><div class="wrap">
   <div class="top">
     <div>
