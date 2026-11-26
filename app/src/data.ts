@@ -122,7 +122,7 @@ export const STORES: Record<StoreId, StoreData> = {
     nav: ["Plants", "Pots", "Care"],
     placeholder: "Ask about light, care, delivery…",
     picks: [
-      { name: "Snake Plant", price: 48, why: "Happy far from a window, water every few weeks", thumb: u("1524274617086-8b6cb8c4ffee", 160) },
+      { name: "Snake Plant", price: 48, why: "Happy far from a window, water every few weeks", thumb: u("1687552212914-03a30c82053c", 160) },
       { name: "ZZ Plant", price: 54, why: "Glossy leaves, shrugs off missed waterings", thumb: u("1607776996766-8b9e3ae74f5c", 160) },
       { name: "Spider Plant", price: 32, why: "Pet-safe and quick to grow", thumb: u("1622459369222-93bb1fb9bb1f", 160) },
     ],
@@ -131,12 +131,12 @@ export const STORES: Record<StoreId, StoreData> = {
     cartLine: "Snake Plant · Clay pot",
     pdp: {
       kicker: "Plants · Best seller",
-      hero: u("1524274617086-8b6cb8c4ffee", 900),
+      hero: u("1687552212914-03a30c82053c", 900),
       heroAlt: "Snake plant in a clay pot",
       gallery: [
-        [u("1524274617086-8b6cb8c4ffee", 300), ""],
-        [u("1749703870011-8ad8fc1dcf73", 300), "Plants in a bright bedroom corner"],
-        [u("1607776996766-8b9e3ae74f5c", 300), "ZZ plant in a white pot"],
+        [u("1687552212914-03a30c82053c", 300), ""],
+        [u("1642004346232-7717892cec48", 300), "Snake plant in a woven pot, styled in a living room"],
+        [u("1593482892290-f54927ae1bb6", 300), "Tall snake plant in a white pot"],
       ],
       option: ["Pot", "Clay"],
       swatches: [

@@ -31,7 +31,14 @@ export default function App() {
   // ?embed hides the notes and footer when the prototype sits inside a portfolio page.
   useEffect(() => {
     if (params.has("embed")) document.documentElement.classList.add("embed");
-    if (params.has("shot")) document.documentElement.classList.add("shot");
+    if (params.has("shot")) {
+      // ?shot=2 renders at 2x for crisp screenshots on tools that can't set a device scale.
+      const root = document.documentElement;
+      const zoom = Number(params.get("shot")) || 1;
+      root.classList.add("shot");
+      root.style.zoom = String(zoom);
+      root.style.setProperty("--sh", `${window.innerHeight / zoom}px`);
+    }
     window.__brand = (id) => {
       const preset = PRESETS.find((p) => p.id === id);
       if (preset) setTheme({ ...preset });

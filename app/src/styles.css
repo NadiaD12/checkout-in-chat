@@ -66,7 +66,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .prod{display:flex;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}.prod:first-child{border-top:0}
 .thumb{width:56px;height:56px;border-radius:var(--r2);background:var(--ui2);flex:none;overflow:hidden}
 .prod b{font-size:14px;display:block}.prod small{display:block;color:var(--sub);font-size:13px;line-height:1.35}
-.prod .p{margin-left:auto;font-weight:600;font-size:14px;white-space:nowrap}
+.prod>div:nth-child(2){flex:1;min-width:0}.prod .p{margin-left:auto;font-weight:600;font-size:14px;white-space:nowrap;flex:none}
 .tag{display:inline-block;font-size:12px;font-weight:600;color:var(--b2);background:var(--bs);border-radius:6px;padding:1px 7px;margin-top:4px}
 .warn{color:#9a4a12;background:#fdf0e3}
 .sum{padding:12px 14px;font-size:14px}
@@ -121,4 +121,4 @@ html.embed .notes,html.embed .foot{display:none}
 /* ?shot: only the chat, filling the window, for portfolio screenshots */
 html.shot .band{padding:0}html.shot .wrap{max-width:none}
 html.shot .top,html.shot .bar,html.shot .notes,html.shot .foot,html.shot .store{display:none}
-html.shot .win{border-radius:0;box-shadow:none}html.shot .app{grid-template-columns:1fr;height:100vh}html.shot .chat{height:100vh}
+html.shot .win{border-radius:0;box-shadow:none}html.shot .app{grid-template-columns:1fr;height:var(--sh,100vh)}html.shot .chat{height:var(--sh,100vh)}
